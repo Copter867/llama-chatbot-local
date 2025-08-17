@@ -1,14 +1,8 @@
-import ollama from 'ollama';
+import { chat } from "./chat.js";
 
-// ฟังก์ชันคุยกับโมเดล
-async function chat(message) {
-  const res = await ollama.chat({
-    model: 'llama3',
-    messages: [{ role: 'user', content: message }]
-  });
-
-  console.log("LLaMA:", res.message.content);
+async function main() {
+  await chat("สวัสดี DeepSeek! แนะนำตัวหน่อย"); // จะใช้ deepseek-r1:8b อัตโนมัติ
+  await chat("คุณคิดอย่างไรกับอนาคตของ AI?");
 }
 
-// ทดสอบ
-chat("สวัสดี LLaMA! แนะนำตัวหน่อย");
+main();

@@ -20,7 +20,7 @@ function appendMessage(role, text, isTyping = false) {
     }, 30);
   }
 
-  return bubble; // 👈 เพิ่มเพื่อให้ลบ/แก้ได้ทีหลัง
+  return bubble;
 }
 
 function appendLoader() {
@@ -47,11 +47,9 @@ async function sendMessage() {
   const msg = msgInput.value.trim();
   if (!msg) return;
 
-  // เพิ่มข้อความผู้ใช้
   appendMessage("user", msg);
   msgInput.value = "";
 
-  // แสดง Loader ระหว่างรอ
   const loaderBubble = appendLoader();
 
   const res = await fetch("/chat", {
@@ -62,10 +60,54 @@ async function sendMessage() {
 
   const data = await res.json();
 
-  // ลบ Loader
   removeLoader(loaderBubble);
 
-  // แสดงข้อความบอทแบบ typing effect
   appendMessage("assistant", data.reply, true);
 }
 
+// ฟังก์ชันส่งไฟล์
+async function sendFile() {
+  const fileInput = document.getElementById("fileInput");
+  const file = fileInput.files[0];
+  if (!file) {
+    alert("กรุณาเลือกไฟล์ก่อนส่ง");
+    return;
+  }
+
+  appendMessage("user", `📎 อัปโหลดไฟล์: ${file.name}`);
+
+  const loaderBubble = appendLoader();
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await fetch("/upload", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+
+    removeLoader(loaderBubble);
+
+    appendMessage("assistant", data.answer, true);
+
+  } catch (err) {
+    removeLoader(loaderBubble);
+    appendMessage("assistant", "❌ เกิดข้อผิดพลาดในการอัปโหลดไฟล์");
+    console.error(err);
+  } finally {
+    fileInput.value = "";
+  }
+}
+
+// ✅ ฟังก์ชันเริ่มแชทใหม่
+document.getElementById("newChat").addEventListener("click", async () => {
+  const chatBox = document.getElementById("chatBox");
+  chatBox.innerHTML = "";
+
+  await fetch("/reset", { method: "POST" });
+
+  appendMessage("assistant", "🆕 เริ่มการสนทนาใหม่แล้ว");
+});
